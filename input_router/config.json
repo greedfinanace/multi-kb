@@ -1,0 +1,31 @@
+{
+    "raw_input_service": {
+        "host": "127.0.0.1",
+        "port": 9999
+    },
+    "device_mappings": {
+        "kb-001": "user_1",
+        "kb-002": "user_2",
+        "mouse-001": "user_1",
+        "mouse-002": "user_2"
+    },
+    "users": {
+        "user_1": {
+            "project_dir": "C:\\Projects\\user1_workspace",
+            "editor": "cursor"
+        },
+        "user_2": {
+            "project_dir": "C:\\Projects\\user2_workspace",
+            "editor": "cursor"
+        }
+    },
+    "editor_paths": {
+        "cursor": "C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\cursor\\Cursor.exe",
+        "vscode": "C:\\Program Files\\Microsoft VS Code\\Code.exe"
+    },
+    "settings": {
+        "focus_delay_ms": 50,
+        "reconnect_delay_s": 5,
+        "log_file": "input_router.log"
+    }
+}

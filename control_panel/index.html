@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Router Control Panel</title>
+    <style>
+        /* CSS Design Tokens */
+        :root {
+            /* Colors - Dark Theme */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --success: #4ecca3;
+            --warning: #ffc107;
+            --error: #ff6b6b;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            /* Typography */
+            --font-family: 'Segoe UI', system-ui, sans-serif;
+            --font-mono: 'Consolas', 'Monaco', monospace;
+            --font-size-sm: 12px;
+            --font-size-md: 14px;
+            --font-size-lg: 18px;
+            
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .header-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background-color: var(--bg-card);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--warning);
+        }
+
+        .status-dot.connected {
+            background-color: var(--success);
+        }
+
+        .status-dot.disconnected {
+            background-color: var(--error);
+        }
+
+        /* Error Banner */
+        .error-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background-color: var(--error);
+            color: var(--bg-primary);
+        }
+
+        .error-banner.hidden {
+            display: none;
+        }
+
+        .error-dismiss {
+            background: none;
+            border: none;
+            color: var(--bg-primary);
+            font-size: var(--font-size-lg);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        .dashboard-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--bg-secondary);
+        }
+
+        /* Status List */
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        /* Sessions List */
+        .sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .session-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .session-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .session-name {
+            font-weight: 600;
+        }
+
+        .session-pid {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        /* Device Groups */
+        .devices-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .device-group-title {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .device-id {
+            font-family: var(--font-mono);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Input Log */
+        .input-log {
+            height: 300px;
+            overflow-y: auto;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-sm);
+        }
+
+        .log-entry {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .ws-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+            font-weight: normal;
+            color: var(--text-secondary);
+        }
+
+        .ws-status .status-dot {
+            width: 6px;
+            height: 6px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--bg-primary);
+        }
+
+        .btn-danger {
+            background-color: var(--error);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        .btn-icon {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: var(--font-size-md);
+            cursor: pointer;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-primary);
+        }
+
+        /* Form Elements */
+        select, input {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--bg-card);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--bg-secondary);
+        }
+
+        .modal-header h2 {
+            font-size: var(--font-size-lg);
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--bg-secondary);
+        }
+
+        .modal-close {
+            font-size: 24px;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-success {
+            color: var(--success);
+        }
+
+        .text-error {
+            color: var(--error);
+        }
+
+        .text-warning {
+            color: var(--warning);
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                text-align: center;
+            }
+
+            .dashboard {
+                padding: var(--spacing-md);
+            }
+
+            .card {
+                padding: var(--spacing-md);
+            }
+
+            .device-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+
+            .device-item select {
+                width: 100%;
+            }
+        }
+</style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1 class="header-title">Input Router Control Panel</h1>
+        <div class="status-badge" id="status-badge">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+        </div>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="error-banner hidden">
+        <span class="error-message"></span>
+        <button class="error-dismiss" onclick="dismissError()">×</button>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- Left Column -->
+        <div class="dashboard-column left-column">
+            <!-- System Status Section -->
+            <section class="card" id="status-section">
+                <h2 class="card-title">System Status</h2>
+                <div class="status-list" id="status-list">
+                    <!-- Status indicators will be rendered here -->
+                </div>
+            </section>
+
+            <!-- User Sessions Section -->
+            <section class="card" id="sessions-section">
+                <h2 class="card-title">User Sessions</h2>
+                <div class="sessions-list" id="sessions-list">
+                    <!-- Session cards will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="card" id="settings-section">
+                <h2 class="card-title">
+                    Settings
+                    <button class="btn btn-icon" id="settings-btn" title="Open Settings">⚙</button>
+                </h2>
+            </section>
+        </div>
+
+        <!-- Right Column -->
+        <div class="dashboard-column right-column">
+            <!-- Device Assignment Section -->
+            <section class="card" id="devices-section">
+                <h2 class="card-title">Device Assignment</h2>
+                <div class="devices-container">
+                    <div class="device-group">
+                        <h3 class="device-group-title">Keyboards</h3>
+                        <div class="device-list" id="keyboards-list">
+                            <!-- Keyboard devices will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="device-group">
+                        <h3 class="device-group-title">Mice</h3>
+                        <div class="device-list" id="mice-list">
+                            <!-- Mouse devices will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Input Log Section -->
+            <section class="card" id="input-log-section">
+                <h2 class="card-title">
+                    Input Log
+                    <span class="ws-status" id="ws-status">
+                        <span class="status-dot disconnected"></span>
+                        <span class="ws-status-text">Disconnected</span>
+                    </span>
+                    <button class="btn btn-sm" id="clear-log-btn">Clear</button>
+                </h2>
+                <div class="input-log" id="input-log">
+                    <!-- Input events will be rendered here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal hidden" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="btn btn-icon modal-close" id="modal-close">×</button>
+            </div>
+            <div class="modal-body" id="settings-form">
+                <!-- Settings form will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="settings-cancel">Cancel</button>
+                <button class="btn btn-primary" id="settings-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // State Management
+        // ============================================
+        const API_BASE = 'http://localhost:3000';
+        const WS_URL = 'ws://localhost:3000/ws/input-log';
+        
+        const state = {
+            status: { 
+                router_running: false, 
+                service_connected: false, 
+                ws_clients: 0,
+                processes: {}
+            },
+            devices: { keyboards: [], mice: [] },
+            users: {},
+            sessions: {},
+            mappings: {},
+            inputLog: []
+        };
+
+        // ============================================
+        // Error Handling
+        // ============================================
+        function showError(message) {
+            const banner = document.getElementById('error-banner');
+            const msgEl = banner.querySelector('.error-message');
+            msgEl.textContent = message;
+            banner.classList.remove('hidden');
+        }
+
+        function dismissError() {
+            document.getElementById('error-banner').classList.add('hidden');
+        }
+
+        // ============================================
+        // API Client Functions
+        // ============================================
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Content-Type': 'application/json' },
+                    ...options
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: response.statusText }));
+                    throw new Error(error.error || error.message || 'Request failed');
+                }
+                return await response.json();
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('API Server is offline');
+                    throw new Error('API Server is offline');
+                }
+                throw error;
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const data = await apiRequest('/api/status');
+                state.status = data;
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch status:', error);
+                throw error;
+            }
+        }
+
+        async function fetchDevices() {
+            try {
+                const data = await apiRequest('/api/devices');
+                state.devices = data;
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch devices:', error);
+                throw error;
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                const data = await apiRequest('/api/users');
+                state.users = data;
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch users:', error);
+                throw error;
+            }
+        }
+
+        async function fetchSessions() {
+            try {
+                const data = await apiRequest('/api/sessions');
+                state.sessions = data;
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch sessions:', error);
+                throw error;
+            }
+        }
+
+        async function fetchMappings() {
+            try {
+                const data = await apiRequest('/api/mappings');
+                state.mappings = data;
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch mappings:', error);
+                throw error;
+            }
+        }
+
+        async function assignDevice(deviceId, userId) {
+            try {
+                const data = await apiRequest('/api/assign-device', {
+                    method: 'POST',
+                    body: JSON.stringify({ device_id: deviceId, user_id: userId })
+                });
+                await fetchDevices();
+                await fetchMappings();
+                return data;
+            } catch (error) {
+                showError(`Failed to assign device: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function launchEditor(userId) {
+            try {
+                const data = await apiRequest('/api/launch', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+                await fetchStatus();
+                await fetchSessions();
+                return data;
+            } catch (error) {
+                showError(`Failed to launch editor: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function stopEditor(userId) {
+            try {
+                const data = await apiRequest('/api/stop', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId })
+                });
+                await fetchStatus();
+                await fetchSessions();
+                return data;
+            } catch (error) {
+                showError(`Failed to stop editor: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function updateUserConfig(userId, config) {
+            try {
+                const data = await apiRequest(`/api/users/${userId}`, {
+                    method: 'POST',
+                    body: JSON.stringify(config)
+                });
+                await fetchUsers();
+                return data;
+            } catch (error) {
+                showError(`Failed to update config: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // System Status Rendering (Task 3.1)
+        // ============================================
+        function renderStatus() {
+            const statusList = document.getElementById('status-list');
+            const statusBadge = document.getElementById('status-badge');
+            const statusDot = statusBadge.querySelector('.status-dot');
+            const statusText = statusBadge.querySelector('.status-text');
+
+            // Update header badge
+            const allConnected = state.status.router_running && state.status.service_connected;
+            statusDot.className = 'status-dot ' + (allConnected ? 'connected' : 'disconnected');
+            statusText.textContent = allConnected ? 'Connected' : 'Disconnected';
+
+            // Render status list
+            statusList.innerHTML = `
+                <div class="status-item">
+                    <span class="status-dot ${state.status.router_running ? 'connected' : 'disconnected'}"></span>
+                    <span>Input Router Daemon</span>
+                    <span class="text-muted" style="margin-left: auto;">${state.status.router_running ? 'Running' : 'Stopped'}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot ${state.status.service_connected ? 'connected' : 'disconnected'}"></span>
+                    <span>Raw Input Service</span>
+                    <span class="text-muted" style="margin-left: auto;">${state.status.service_connected ? 'Connected' : 'Disconnected'}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot ${state.status.ws_clients > 0 ? 'connected' : ''}"></span>
+                    <span>WebSocket Clients</span>
+                    <span class="text-muted" style="margin-left: auto;">${state.status.ws_clients || 0}</span>
+                </div>
+            `;
+        }
+
+        // Status polling interval (5 seconds)
+        let statusPollingInterval = null;
+
+        function startStatusPolling() {
+            if (statusPollingInterval) clearInterval(statusPollingInterval);
+            statusPollingInterval = setInterval(async () => {
+                try {
+                    await fetchStatus();
+                    renderStatus();
+                    dismissError(); // Clear error if status fetch succeeds
+                } catch (error) {
+                    // Error already shown by fetchStatus
+                }
+            }, 5000);
+        }
+
+        function stopStatusPolling() {
+            if (statusPollingInterval) {
+                clearInterval(statusPollingInterval);
+                statusPollingInterval = null;
+            }
+        }
+
+        // ============================================
+        // Device Assignment Rendering (Task 4)
+        // ============================================
+        function renderDevices() {
+            const keyboardsList = document.getElementById('keyboards-list');
+            const miceList = document.getElementById('mice-list');
+            
+            // Get user options for dropdowns
+            const userOptions = Object.keys(state.users).map(userId => 
+                `<option value="${userId}">${userId}</option>`
+            ).join('');
+            
+            // Render keyboards
+            if (state.devices.keyboards && state.devices.keyboards.length > 0) {
+                keyboardsList.innerHTML = state.devices.keyboards.map(device => `
+                    <div class="device-item">
+                        <span class="device-id">${device.device_id}</span>
+                        <select class="device-assign" data-device-id="${device.device_id}" onchange="handleDeviceAssign(this)">
+                            <option value="">Unassigned</option>
+                            ${userOptions}
+                        </select>
+                    </div>
+                `).join('');
+                
+                // Set current assignments
+                state.devices.keyboards.forEach(device => {
+                    const select = keyboardsList.querySelector(`select[data-device-id="${device.device_id}"]`);
+                    if (select && device.assigned_to) {
+                        select.value = device.assigned_to;
+                    }
+                });
+            } else {
+                keyboardsList.innerHTML = '<div class="text-muted">No keyboards detected</div>';
+            }
+            
+            // Render mice
+            if (state.devices.mice && state.devices.mice.length > 0) {
+                miceList.innerHTML = state.devices.mice.map(device => `
+                    <div class="device-item">
+                        <span class="device-id">${device.device_id}</span>
+                        <select class="device-assign" data-device-id="${device.device_id}" onchange="handleDeviceAssign(this)">
+                            <option value="">Unassigned</option>
+                            ${userOptions}
+                        </select>
+                    </div>
+                `).join('');
+                
+                // Set current assignments
+                state.devices.mice.forEach(device => {
+                    const select = miceList.querySelector(`select[data-device-id="${device.device_id}"]`);
+                    if (select && device.assigned_to) {
+                        select.value = device.assigned_to;
+                    }
+                });
+            } else {
+                miceList.innerHTML = '<div class="text-muted">No mice detected</div>';
+            }
+        }
+
+        async function handleDeviceAssign(selectElement) {
+            const deviceId = selectElement.dataset.deviceId;
+            const userId = selectElement.value || null;
+            
+            selectElement.disabled = true;
+            try {
+                await assignDevice(deviceId, userId);
+                renderDevices();
+            } catch (error) {
+                // Error already shown, restore previous value
+                renderDevices();
+            } finally {
+                selectElement.disabled = false;
+            }
+        }
+
+        // ============================================
+        // User Sessions Rendering (Task 5)
+        // ============================================
+        function renderSessions() {
+            const sessionsList = document.getElementById('sessions-list');
+            const userIds = Object.keys(state.users);
+            
+            if (userIds.length === 0) {
+                sessionsList.innerHTML = '<div class="text-muted">No users configured</div>';
+                return;
+            }
+            
+            sessionsList.innerHTML = userIds.map(userId => {
+                const userConfig = state.users[userId];
+                const process = state.status.processes ? state.status.processes[userId] : null;
+                const isRunning = process && process.running;
+                const pid = process ? process.pid : null;
+                const hwnd = process ? process.hwnd : null;
+                const isAttached = process && process.editor === 'attached';
+                
+                return `
+                    <div class="session-card">
+                        <div class="session-info">
+                            <span class="session-name">${userId}</span>
+                            <span class="session-pid">${isRunning ? (isAttached ? `HWND: ${hwnd}` : `PID: ${pid}`) : 'Not attached'}</span>
+                            <span class="text-muted" style="font-size: var(--font-size-sm);">${isAttached ? '📎 Attached' : (userConfig.editor || 'cursor')}</span>
+                        </div>
+                        <div class="session-actions" style="display: flex; gap: var(--spacing-sm);">
+                            ${isRunning 
+                                ? `<button class="btn btn-danger btn-sm" onclick="handleStopEditor('${userId}')">Detach</button>`
+                                : `
+                                    <button class="btn btn-primary btn-sm" onclick="showWindowPicker('${userId}')" title="Attach to existing window">📎 Pick Window</button>
+                                    <button class="btn btn-success btn-sm" onclick="handleLaunchEditor('${userId}')" title="Launch new editor">▶ Launch</button>
+                                `
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function handleLaunchEditor(userId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Launching...';
+            
+            try {
+                await launchEditor(userId);
+                renderSessions();
+                renderStatus();
+            } catch (error) {
+                // Error already shown
+                renderSessions();
+            }
+        }
+
+        async function handleStopEditor(userId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Stopping...';
+            
+            try {
+                await stopEditor(userId);
+                renderSessions();
+                renderStatus();
+            } catch (error) {
+                // Error already shown
+                renderSessions();
+            }
+        }
+
+        // ============================================
+        // Window Picker - Attach to existing windows
+        // ============================================
+        async function fetchOpenWindows() {
+            try {
+                return await apiRequest('/api/windows');
+            } catch (error) {
+                console.error('Failed to fetch windows:', error);
+                return [];
+            }
+        }
+
+        async function attachToWindow(userId, hwnd) {
+            try {
+                const data = await apiRequest('/api/attach', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, hwnd: hwnd })
+                });
+                await fetchStatus();
+                await fetchSessions();
+                return data;
+            } catch (error) {
+                showError(`Failed to attach window: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function showWindowPicker(userId) {
+            const windows = await fetchOpenWindows();
+            
+            if (windows.length === 0) {
+                showError('No editor windows found. Open Cursor, VS Code, or Kiro first.');
+                return;
+            }
+            
+            // Create modal content
+            const modal = document.getElementById('settings-modal');
+            const modalHeader = modal.querySelector('.modal-header h2');
+            const modalBody = document.getElementById('settings-form');
+            const saveBtn = document.getElementById('settings-save');
+            
+            modalHeader.textContent = `Attach ${userId} to Window`;
+            
+            modalBody.innerHTML = `
+                <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">
+                    Select an open window to attach this user's keyboard/mouse to:
+                </p>
+                <div class="window-list" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    ${windows.map(w => `
+                        <label class="window-option" style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="window-select" value="${w.hwnd}" style="accent-color: var(--accent);">
+                            <div style="flex: 1; overflow: hidden;">
+                                <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${w.title}</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">PID: ${w.pid} | HWND: ${w.hwnd}</div>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            
+            saveBtn.textContent = 'Attach';
+            saveBtn.onclick = async () => {
+                const selected = modalBody.querySelector('input[name="window-select"]:checked');
+                if (!selected) {
+                    showError('Please select a window');
+                    return;
+                }
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Attaching...';
+                
+                try {
+                    await attachToWindow(userId, parseInt(selected.value));
+                    modal.classList.add('hidden');
+                    renderSessions();
+                } catch (error) {
+                    // Error already shown
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Attach';
+                }
+            };
+            
+            modal.classList.remove('hidden');
+        }
+
+        // ============================================
+        // Input Log with WebSocket (Task 6)
+        // ============================================
+        const MAX_LOG_ENTRIES = 100;
+        let ws = null;
+        let wsReconnectTimeout = null;
+
+        function updateWsStatus(connected) {
+            const wsStatus = document.getElementById('ws-status');
+            const dot = wsStatus.querySelector('.status-dot');
+            const text = wsStatus.querySelector('.ws-status-text');
+            
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            text.textContent = connected ? 'Connected' : 'Disconnected';
+        }
+
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) return;
+            
+            try {
+                ws = new WebSocket(WS_URL);
+                
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    updateWsStatus(true);
+                    if (wsReconnectTimeout) {
+                        clearTimeout(wsReconnectTimeout);
+                        wsReconnectTimeout = null;
+                    }
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        addLogEntry(data);
+                    } catch (e) {
+                        console.error('Failed to parse WebSocket message:', e);
+                    }
+                };
+                
+                ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    updateWsStatus(false);
+                    scheduleReconnect();
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    updateWsStatus(false);
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket:', error);
+                updateWsStatus(false);
+                scheduleReconnect();
+            }
+        }
+
+        function scheduleReconnect() {
+            if (wsReconnectTimeout) return;
+            wsReconnectTimeout = setTimeout(() => {
+                wsReconnectTimeout = null;
+                connectWebSocket();
+            }, 3000);
+        }
+
+        function disconnectWebSocket() {
+            if (wsReconnectTimeout) {
+                clearTimeout(wsReconnectTimeout);
+                wsReconnectTimeout = null;
+            }
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function addLogEntry(data) {
+            // Format the log entry based on event type
+            let logText = '';
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (data.type === 'connection') {
+                logText = `[${timestamp}] Connection: ${data.status}`;
+            } else if (data.type === 'input') {
+                const deviceId = data.device_id || 'unknown';
+                const eventType = data.event_type || 'EVENT';
+                
+                if (data.device_type === 'keyboard') {
+                    const key = data.key || `vkey:${data.vkey}`;
+                    logText = `[${timestamp}] ${deviceId}: ${eventType} ${key}`;
+                } else if (data.device_type === 'mouse') {
+                    if (data.event_type === 'MOUSE_MOVE') {
+                        logText = `[${timestamp}] ${deviceId}: MOVE (${data.x}, ${data.y})`;
+                    } else {
+                        logText = `[${timestamp}] ${deviceId}: ${eventType} ${data.button || ''}`;
+                    }
+                } else {
+                    logText = `[${timestamp}] ${deviceId}: ${eventType}`;
+                }
+            } else {
+                logText = `[${timestamp}] ${JSON.stringify(data)}`;
+            }
+            
+            state.inputLog.push(logText);
+            
+            // Limit log entries
+            if (state.inputLog.length > MAX_LOG_ENTRIES) {
+                state.inputLog.shift();
+            }
+            
+            renderInputLog();
+        }
+
+        function renderInputLog() {
+            const logContainer = document.getElementById('input-log');
+            
+            if (state.inputLog.length === 0) {
+                logContainer.innerHTML = '<div class="text-muted">No input events yet...</div>';
+                return;
+            }
+            
+            logContainer.innerHTML = state.inputLog.map(entry => 
+                `<div class="log-entry">${entry}</div>`
+            ).join('');
+            
+            // Auto-scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearInputLog() {
+            state.inputLog = [];
+            renderInputLog();
+        }
+
+        // Wire up clear button
+        document.getElementById('clear-log-btn').addEventListener('click', clearInputLog);
+
+        // ============================================
+        // Settings Panel (Task 7)
+        // ============================================
+        let pendingSettings = {};
+
+        function openSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            pendingSettings = JSON.parse(JSON.stringify(state.users)); // Deep copy
+            renderSettingsForm();
+            modal.classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('hidden');
+            pendingSettings = {};
+        }
+
+        function renderSettingsForm() {
+            const formContainer = document.getElementById('settings-form');
+            const userIds = Object.keys(pendingSettings);
+            
+            if (userIds.length === 0) {
+                formContainer.innerHTML = '<div class="text-muted">No users configured</div>';
+                return;
+            }
+            
+            formContainer.innerHTML = userIds.map(userId => {
+                const config = pendingSettings[userId];
+                return `
+                    <div class="user-settings" data-user-id="${userId}">
+                        <h3 style="margin-bottom: var(--spacing-md); color: var(--text-primary);">${userId}</h3>
+                        <div class="form-group">
+                            <label for="project-dir-${userId}">Project Directory</label>
+                            <input type="text" 
+                                   id="project-dir-${userId}" 
+                                   value="${config.project_dir || ''}" 
+                                   placeholder="C:\\path\\to\\project"
+                                   onchange="updatePendingSetting('${userId}', 'project_dir', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="editor-${userId}">Editor</label>
+                            <select id="editor-${userId}" onchange="updatePendingSetting('${userId}', 'editor', this.value)">
+                                <option value="cursor" ${config.editor === 'cursor' ? 'selected' : ''}>Cursor</option>
+                                <option value="vscode" ${config.editor === 'vscode' ? 'selected' : ''}>VS Code</option>
+                            </select>
+                        </div>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid var(--bg-secondary); margin: var(--spacing-lg) 0;">
+                `;
+            }).join('');
+        }
+
+        function updatePendingSetting(userId, key, value) {
+            if (!pendingSettings[userId]) {
+                pendingSettings[userId] = {};
+            }
+            pendingSettings[userId][key] = value;
+        }
+
+        function validatePath(path) {
+            // Basic path validation - check for common path patterns
+            if (!path || path.trim() === '') return false;
+            // Windows path pattern or Unix path pattern
+            const windowsPattern = /^[a-zA-Z]:\\[\w\s\\.-]*$/;
+            const unixPattern = /^\/[\w\s\/.-]*$/;
+            return windowsPattern.test(path) || unixPattern.test(path);
+        }
+
+        async function saveSettings() {
+            const saveBtn = document.getElementById('settings-save');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            try {
+                // Validate all paths
+                for (const userId of Object.keys(pendingSettings)) {
+                    const config = pendingSettings[userId];
+                    if (config.project_dir && !validatePath(config.project_dir)) {
+                        showError(`Invalid path format for ${userId}: ${config.project_dir}`);
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save';
+                        return;
+                    }
+                }
+                
+                // Save each user's config
+                for (const userId of Object.keys(pendingSettings)) {
+                    await updateUserConfig(userId, pendingSettings[userId]);
+                }
+                
+                // Show success notification
+                showSuccessNotification('Settings saved successfully');
+                closeSettingsModal();
+                renderSessions();
+            } catch (error) {
+                // Error already shown, keep form open with data
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        }
+
+        function showSuccessNotification(message) {
+            // Create temporary success notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: var(--success);
+                color: var(--bg-primary);
+                padding: var(--spacing-md) var(--spacing-lg);
+                border-radius: var(--radius-md);
+                z-index: 1001;
+                font-weight: 600;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Wire up settings modal buttons
+        document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
+        document.getElementById('modal-close').addEventListener('click', closeSettingsModal);
+        document.getElementById('settings-cancel').addEventListener('click', closeSettingsModal);
+        document.getElementById('settings-save').addEventListener('click', saveSettings);
+        
+        // Close modal on backdrop click
+        document.getElementById('settings-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'settings-modal') {
+                closeSettingsModal();
+            }
+        });
+
+        // ============================================
+        // Application Initialization (Task 8)
+        // ============================================
+        async function init() {
+            console.log('Initializing Control Panel...');
+            
+            try {
+                // Fetch initial data
+                await Promise.all([
+                    fetchStatus(),
+                    fetchDevices(),
+                    fetchUsers(),
+                    fetchMappings()
+                ]);
+                
+                // Render all sections
+                renderStatus();
+                renderDevices();
+                renderSessions();
+                renderInputLog();
+                
+                // Start WebSocket connection
+                connectWebSocket();
+                
+                // Start status polling (5 seconds)
+                startStatusPolling();
+                
+                console.log('Control Panel initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                // Show error but still render what we can
+                renderStatus();
+                renderDevices();
+                renderSessions();
+                renderInputLog();
+                
+                // Still try to connect WebSocket and start polling
+                connectWebSocket();
+                startStatusPolling();
+            }
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
